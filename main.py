@@ -1,6 +1,6 @@
 # main.py
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -10,12 +10,12 @@ import os
 
 from rag import load_clinic_data, search_clinic_data
 
-# Load env variables
+# Load environment variables
 load_dotenv()
 
 app = FastAPI()
 
-# CORS (frontend safety)
+# CORS (frontend safe)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,7 +27,7 @@ app.add_middleware(
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
-    raise ValueError("GROQ_API_KEY is missing!")
+    print("⚠️ WARNING: GROQ_API_KEY is missing!")
 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -35,18 +35,28 @@ client = Groq(api_key=GROQ_API_KEY)
 # ✅ ROOT → SERVE UI
 @app.get("/")
 def serve_home():
-    return FileResponse("index.html")
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return {"error": "index.html not found"}
+
+
+# ✅ HEALTH CHECK (important for Render)
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 
 # ✅ STARTUP → LOAD CLINIC DATA
 @app.on_event("startup")
 async def startup_event():
-    if os.path.exists("clinic_data.txt"):
-        count = load_clinic_data("clinic_abc", "clinic_data.txt")
-        print(f"Loaded {count} chunks for clinic: clinic_abc")
-        print("Clinic data loaded successfully!")
-    else:
-        print("Warning: clinic_data.txt not found!")
+    try:
+        if os.path.exists("clinic_data.txt"):
+            count = load_clinic_data("clinic_abc", "clinic_data.txt")
+            print(f"✅ Loaded {count} chunks for clinic: clinic_abc")
+        else:
+            print("⚠️ clinic_data.txt not found")
+    except Exception as e:
+        print(f"❌ Error loading clinic data: {e}")
 
 
 # ✅ REQUEST MODEL
@@ -59,17 +69,21 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 def chat(request: ChatRequest):
 
-    relevant_chunks = search_clinic_data(
-        request.clinic_id,
-        request.message
-    )
+    if not GROQ_API_KEY:
+        raise HTTPException(status_code=500, detail="Missing GROQ_API_KEY")
 
-    if relevant_chunks:
-        context = "\n\n".join([
-            f"- {chunk}" for chunk in relevant_chunks
-        ])
+    try:
+        relevant_chunks = search_clinic_data(
+            request.clinic_id,
+            request.message
+        )
 
-        system_prompt = f"""
+        if relevant_chunks:
+            context = "\n\n".join([
+                f"- {chunk}" for chunk in relevant_chunks
+            ])
+
+            system_prompt = f"""
 You are a professional dental AI receptionist.
 
 You have TWO roles:
@@ -84,34 +98,41 @@ STRICT RULES:
 CLINIC DATA:
 {context}
 """
-    else:
-        system_prompt = """
+        else:
+            system_prompt = """
 You are a friendly dental clinic receptionist.
 
 Answer general dental questions, give safe advice,
 and be warm, polite, and professional.
 """
 
-    response = client.chat.completions.create(
-        model="llama3-70b-8192",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": request.message}
-        ],
-        temperature=0.3,
-        max_tokens=500
-    )
+        response = client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": request.message}
+            ],
+            temperature=0.3,
+            max_tokens=500
+        )
 
-    reply = response.choices[0].message.content
+        reply = response.choices[0].message.content
 
-    return {
-        "reply": reply,
-        "clinic_id": request.clinic_id
-    }
+        return {
+            "reply": reply,
+            "clinic_id": request.clinic_id
+        }
+
+    except Exception as e:
+        print(f"❌ Chat error: {e}")
+        raise HTTPException(status_code=500, detail="Chat processing failed")
 
 
 # ✅ LOAD DATA ENDPOINT (OPTIONAL)
 @app.post("/load-data/{clinic_id}")
 def load_data(clinic_id: str, file_path: str):
-    count = load_clinic_data(clinic_id, file_path)
-    return {"message": f"Loaded {count} chunks for {clinic_id}"}
+    try:
+        count = load_clinic_data(clinic_id, file_path)
+        return {"message": f"Loaded {count} chunks for {clinic_id}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

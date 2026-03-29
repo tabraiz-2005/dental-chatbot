@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bright Smile Dental — Chat</title>
+
     <style>
         * {
             margin: 0;
@@ -32,7 +33,6 @@
             overflow: hidden;
         }
 
-        /* Header */
         .chat-header {
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             padding: 20px;
@@ -55,25 +55,13 @@
         .clinic-info h2 {
             color: white;
             font-size: 16px;
-            font-weight: 600;
         }
 
         .clinic-info p {
             color: rgba(255, 255, 255, 0.75);
             font-size: 12px;
-            margin-top: 2px;
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #4ade80;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 4px;
-        }
-
-        /* Messages area */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -88,46 +76,25 @@
             padding: 12px 16px;
             border-radius: 18px;
             font-size: 14px;
-            line-height: 1.5;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .message.bot {
             background: #f1f5f9;
-            color: #1e293b;
-            border-bottom-left-radius: 4px;
             align-self: flex-start;
         }
 
         .message.user {
             background: #2563eb;
             color: white;
-            border-bottom-right-radius: 4px;
             align-self: flex-end;
         }
 
-        /* Typing indicator */
         .typing {
             display: flex;
             gap: 4px;
             padding: 14px 16px;
             background: #f1f5f9;
             border-radius: 18px;
-            border-bottom-left-radius: 4px;
-            align-self: flex-start;
-            width: fit-content;
         }
 
         .typing span {
@@ -136,14 +103,6 @@
             background: #94a3b8;
             border-radius: 50%;
             animation: bounce 1.2s infinite;
-        }
-
-        .typing span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing span:nth-child(3) {
-            animation-delay: 0.4s;
         }
 
         @keyframes bounce {
@@ -159,75 +118,27 @@
             }
         }
 
-        /* Quick reply buttons */
-        .quick-replies {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 0 20px 12px;
-        }
-
-        .quick-reply-btn {
-            background: white;
-            border: 1.5px solid #2563eb;
-            color: #2563eb;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .quick-reply-btn:hover {
-            background: #2563eb;
-            color: white;
-        }
-
-        /* Input area */
         .chat-input-area {
-            padding: 16px 20px;
+            padding: 16px;
             border-top: 1px solid #e2e8f0;
             display: flex;
             gap: 10px;
-            align-items: center;
         }
 
-        .chat-input-area input {
+        input {
             flex: 1;
-            padding: 12px 16px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 25px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.15s;
+            padding: 12px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
         }
 
-        .chat-input-area input:focus {
-            border-color: #2563eb;
-        }
-
-        .send-btn {
-            width: 44px;
-            height: 44px;
+        button {
             background: #2563eb;
+            color: white;
             border: none;
+            padding: 10px 14px;
             border-radius: 50%;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.15s;
-            flex-shrink: 0;
-        }
-
-        .send-btn:hover {
-            background: #1d4ed8;
-        }
-
-        .send-btn svg {
-            width: 18px;
-            height: 18px;
-            fill: white;
         }
     </style>
 </head>
@@ -236,104 +147,90 @@
 
     <div class="chat-container">
 
-        <!-- Header -->
         <div class="chat-header">
             <div class="clinic-avatar">🦷</div>
             <div class="clinic-info">
                 <h2>Bright Smile Dental</h2>
-                <p><span class="status-dot"></span>Online — typically replies instantly</p>
+                <p>Online — instant replies</p>
             </div>
         </div>
 
-        <!-- Messages -->
         <div class="chat-messages" id="chatMessages">
             <div class="message bot">
-                👋 Hi! I'm the virtual receptionist for Bright Smile Dental Clinic. How can I help you today?
+                👋 Hi! I'm your AI dental receptionist. How can I help you?
             </div>
         </div>
 
-        <!-- Quick reply suggestions -->
-        <div class="quick-replies" id="quickReplies">
-            <button class="quick-reply-btn" onclick="sendQuick('What are your opening hours?')">Opening hours</button>
-            <button class="quick-reply-btn" onclick="sendQuick('Who are the doctors?')">Our doctors</button>
-            <button class="quick-reply-btn" onclick="sendQuick('What services do you offer?')">Services</button>
-            <button class="quick-reply-btn" onclick="sendQuick('How do I book an appointment?')">Book
-                appointment</button>
-        </div>
-
-        <!-- Input -->
         <div class="chat-input-area">
-            <input type="text" id="userInput" placeholder="Type your question..."
+            <input id="userInput" placeholder="Type your question..."
                 onkeydown="if(event.key==='Enter') sendMessage()" />
-            <button class="send-btn" onclick="sendMessage()">
-                <svg viewBox="0 0 24 24">
-                    <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" />
-                </svg>
-            </button>
+            <button onclick="sendMessage()">➤</button>
         </div>
 
     </div>
 
     <script>
-        const CLINIC_ID = "clinic_abc";
-        const API_URL = "/chat";
 
-        function sendQuick(text) {
-            document.getElementById('userInput').value = text;
-            sendMessage();
-        }
+        const API_URL = "https://dental-chatbot-u88a.onrender.com/chat";
 
         async function sendMessage() {
-            const input = document.getElementById('userInput');
+            const input = document.getElementById("userInput");
             const message = input.value.trim();
             if (!message) return;
 
-            // Hide quick replies after first message
-            document.getElementById('quickReplies').style.display = 'none';
+            addMessage(message, "user");
+            input.value = "";
 
-            // Show user message
-            addMessage(message, 'user');
-            input.value = '';
-
-            // Show typing indicator
             const typing = addTyping();
 
             try {
+                console.log("Sending:", message);
+
                 const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message, clinic_id: CLINIC_ID })
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
                 });
 
+                console.log("Status:", response.status);
+
                 const data = await response.json();
+                console.log("Response:", data);
+
                 typing.remove();
-                addMessage(data.reply, 'bot');
+
+                addMessage(data.reply || "No response from AI", "bot");
 
             } catch (error) {
+                console.error("Error:", error);
                 typing.remove();
-                addMessage("Sorry, I'm having trouble connecting. Please call us directly.", 'bot');
+                addMessage("⚠️ Connection error. Please try again.", "bot");
             }
         }
 
         function addMessage(text, sender) {
-            const messages = document.getElementById('chatMessages');
-            const div = document.createElement('div');
-            div.className = `message ${sender}`;
+            const messages = document.getElementById("chatMessages");
+            const div = document.createElement("div");
+            div.className = "message " + sender;
             div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addTyping() {
+            const messages = document.getElementById("chatMessages");
+            const div = document.createElement("div");
+            div.className = "typing";
+            div.innerHTML = "<span></span><span></span><span></span>";
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
             return div;
         }
 
-        function addTyping() {
-            const messages = document.getElementById('chatMessages');
-            const div = document.createElement('div');
-            div.className = 'typing';
-            div.innerHTML = '<span></span><span></span><span></span>';
-            messages.appendChild(div);
-            messages.scrollTop = messages.scrollHeight;
-            return div;
-        }
     </script>
 
 </body>

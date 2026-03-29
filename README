@@ -1,0 +1,71 @@
+cat > README.md << 'EOF'
+# Dental Receptionist Chatbot
+
+An AI-powered dental clinic receptionist chatbot built with FastAPI and Groq.
+
+## Features
+- Answers patient questions based on clinic-specific data
+- RAG (Retrieval Augmented Generation) for accurate responses
+- Clean chat UI embeddable on any website
+- Supports multiple clinics with separate data
+
+## Tech Stack
+- **Backend**: Python, FastAPI
+- **AI**: Groq API (Llama 3.3)
+- **RAG**: Custom keyword search
+- **Frontend**: HTML, CSS, JavaScript
+
+## Setup
+
+1. Clone the repository
+```
+   git clone https://github.com/tabraiz-2005/dental-chatbot.git
+   cd dental-chatbot
+```
+
+2. Create virtual environment
+```
+   python3 -m venv venv
+   source venv/bin/activate
+```
+
+3. Install dependencies
+```
+   pip install fastapi uvicorn groq python-dotenv
+```
+
+4. Create .env file
+```
+   GROQ_API_KEY=your_groq_api_key_here
+```
+
+5. Add clinic data to clinic_data.txt
+
+6. Run the server
+```
+   uvicorn main:app --reload
+```
+
+7. Open http://127.0.0.1:8000/app
+
+## Deployment
+Deployed on Railway. Set GROQ_API_KEY in Railway environment variables.
+
+## Project Structure
+```
+dental-chatbot/
+├── main.py          # FastAPI backend
+├── rag.py           # RAG search engine
+├── index.html       # Chat frontend
+├── clinic_data.txt  # Clinic information
+├── Procfile         # Railway deployment config
+└── requirements.txt # Python dependencies
+```
+
+## Roadmap
+- [ ] Clinic admin upload page
+- [ ] Multi-clinic support
+- [ ] Embeddable widget
+- [ ] Stripe payments
+- [ ] Twilio SMS/calls
+EOF
